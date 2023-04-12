@@ -4,7 +4,8 @@ const auth = require('../middleware/auth');
 const router = express.Router();
 
 // Create a new order
-router.post('/orders', auth, async (req, res) => {
+router.post('/orders', async (req, res) => {
+checkAuth(req, res);
   const order = new Order({
     ...req.body,
     user: req.user._id,
@@ -19,7 +20,8 @@ router.post('/orders', auth, async (req, res) => {
 });
 
 // Get all orders for current user
-router.get('/orders', auth, async (req, res) => {
+router.get('/orders', async (req, res) => {
+checkAuth(req, res);
   try {
     await req.user.populate('orders').execPopulate();
     res.send(req.user.orders);
@@ -29,7 +31,8 @@ router.get('/orders', auth, async (req, res) => {
 });
 
 // Get an order by ID for current user
-router.get('/orders/:id', auth, async (req, res) => {
+router.get('/orders/:id', async (req, res) => {
+checkAuth(req, res);
   const _id = req.params.id;
   try {
     const order = await Order.findOne({ _id, user: req.user._id });
@@ -43,7 +46,8 @@ router.get('/orders/:id', auth, async (req, res) => {
 });
 
 // Update an order by ID for current user
-router.patch('/orders/:id', auth, async (req, res) => {
+router.patch('/orders/:id', async (req, res) => {
+checkAuth(req, res);
   const updates = Object.keys(req.body);
   const allowedUpdates = ['status'];
   const isValidOperation = updates.every((update) => allowedUpdates.includes(update));
@@ -64,7 +68,8 @@ router.patch('/orders/:id', auth, async (req, res) => {
 });
 
 // Delete an order by ID for current user
-router.delete('/orders/:id', auth, async (req, res) => {
+router.delete('/orders/:id', async (req, res) => {
+checkAuth(req, res);
   try {
     const order = await Order.findOneAndDelete({ _id: req.params.id, user: req.user._id });
     if (!order) {
@@ -77,3 +82,19 @@ router.delete('/orders/:id', auth, async (req, res) => {
 });
 
 module.exports = router;
+
+
+function checkAuth(req, res) {
+  const secretKey = 'mysecretkey';
+
+  const token = req.headers.authorization;
+  if (!token) {
+    return res.status(401).render('auth');
+  }
+  try {
+    const decoded = jwt.verify(token, secretKey);
+    req.user = decoded;
+  } catch (err) {
+    return res.status(401).render('auth');
+  }
+}

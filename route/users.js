@@ -1,6 +1,5 @@
 const express = require('express');
-const User = require('../models/user');
-const auth = require('../middleware/auth');
+const User = require('../model/user');
 const router = express.Router();
 
 // Register a new user
@@ -28,7 +27,9 @@ router.post('/login', async (req, res) => {
 });
 
 // Logout a user from current session
-router.post('/logout', auth, async (req, res) => {
+router.post('/logout', async (req, res) => {
+  checkAuth(req, res)
+
   try {
     req.user.tokens = req.user.tokens.filter((token) => {
       return token.token !== req.token;
@@ -41,7 +42,9 @@ router.post('/logout', auth, async (req, res) => {
 });
 
 // Logout a user from all sessions
-router.post('/logoutAll', auth, async (req, res) => {
+router.post('/logoutAll', async (req, res) => {
+  checkAuth(req, res)
+
   try {
     req.user.tokens = [];
     await req.user.save();
@@ -52,3 +55,19 @@ router.post('/logoutAll', auth, async (req, res) => {
 });
 
 module.exports = router;
+
+
+function checkAuth(req, res) {
+  const secretKey = 'mysecretkey';
+
+  const token = req.headers.authorization;
+  if (!token) {
+    return res.status(401).render('auth');
+  }
+  try {
+    const decoded = jwt.verify(token, secretKey);
+    req.user = decoded;
+  } catch (err) {
+    return res.status(401).render('auth');
+  }
+}

@@ -18,7 +18,8 @@ const upload = multer({
 });
 
 // Create a new product
-router.post('/products', auth, upload.single('photo'), async (req, res) => {
+router.post('/products', upload.single('photo'), async (req, res) => {
+checkAuth(req, res);
   const product = new Product({
     ...req.body,
     photo: req.file.buffer
@@ -33,6 +34,7 @@ router.post('/products', auth, upload.single('photo'), async (req, res) => {
 
 // Get all products
 router.get('/products', async (req, res) => {
+checkAuth(req, res);
   try {
     const products = await Product.find();
     res.send(products);
@@ -43,6 +45,7 @@ router.get('/products', async (req, res) => {
 
 // Get a product by ID
 router.get('/products/:id', async (req, res) => {
+checkAuth(req, res);
   const _id = req.params.id;
   try {
     const product = await Product.findById(_id);
@@ -56,7 +59,8 @@ router.get('/products/:id', async (req, res) => {
 });
 
 // Update a product by ID
-router.patch('/products/:id', auth, upload.single('photo'), async (req, res) => {
+router.patch('/products/:id', upload.single('photo'), async (req, res) => {
+checkAuth(req, res);
   const updates = Object.keys(req.body);
   const allowedUpdates = ['name', 'description', 'price', 'category'];
   const isValidOperation = updates.every((update) => allowedUpdates.includes(update));
@@ -80,7 +84,8 @@ router.patch('/products/:id', auth, upload.single('photo'), async (req, res) => 
 });
 
 // Delete a product by ID
-router.delete('/products/:id', auth, async (req, res) => {
+router.delete('/products/:id', async (req, res) => {
+checkAuth(req, res);
   try {
     const product = await Product.findByIdAndDelete(req.params.id);
     if (!product) {
@@ -93,3 +98,19 @@ router.delete('/products/:id', auth, async (req, res) => {
 });
 
 module.exports = router;
+
+
+function checkAuth(req, res) {
+  const secretKey = 'mysecretkey';
+
+  const token = req.headers.authorization;
+  if (!token) {
+    return res.status(401).render('auth');
+  }
+  try {
+    const decoded = jwt.verify(token, secretKey);
+    req.user = decoded;
+  } catch (err) {
+    return res.status(401).render('auth');
+  }
+}

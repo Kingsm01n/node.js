@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const Category = require('../models/category');
-const auth = require('../middleware/auth');
+const Category = require('../model/category');
 
 // Create a new category
-router.post('/categories', auth, async (req, res) => {
+router.post('/categories', async (req, res) => {
+  checkAuth(req, res);
   const category = new Category(req.body);
   try {
     await category.save();
@@ -17,7 +17,8 @@ router.post('/categories', auth, async (req, res) => {
 });
 
 // Get all categories
-router.get('/categories', auth, async (req, res) => {
+router.get('/categories', async (req, res) => {
+  checkAuth(req, res);
   try {
     const categories = await Category.find({});
     res.send(categories);
@@ -27,7 +28,8 @@ router.get('/categories', auth, async (req, res) => {
 });
 
 // Get a specific category by ID
-router.get('/categories/:id', auth, async (req, res) => {
+router.get('/categories/:id', async (req, res) => {
+  checkAuth(req, res);
   const _id = req.params.id;
   try {
     const category = await Category.findById(_id);
@@ -41,7 +43,8 @@ router.get('/categories/:id', auth, async (req, res) => {
 });
 
 // Update a specific category by ID
-router.patch('/categories/:id', auth, async (req, res) => {
+router.patch('/categories/:id', async (req, res) => {
+  checkAuth(req, res);
   const updates = Object.keys(req.body);
   const allowedUpdates = ['name'];
   const isValidOperation = updates.every((update) => allowedUpdates.includes(update));
@@ -63,7 +66,8 @@ router.patch('/categories/:id', auth, async (req, res) => {
 });
 
 // Delete a specific category by ID
-router.delete('/categories/:id', auth, async (req, res) => {
+router.delete('/categories/:id', async (req, res) => {
+  checkAuth(req, res);
   const _id = req.params.id;
   try {
     const category = await Category.findByIdAndDelete(_id);
@@ -77,3 +81,19 @@ router.delete('/categories/:id', auth, async (req, res) => {
 });
 
 module.exports = router;
+
+
+function checkAuth(req, res) {
+  const secretKey = 'mysecretkey';
+
+  const token = req.headers.authorization;
+  if (!token) {
+    return res.status(401).render('auth');
+  }
+  try {
+    const decoded = jwt.verify(token, secretKey);
+    req.user = decoded;
+  } catch (err) {
+    return res.status(401).render('auth');
+  }
+}
