@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>My Online Store</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background-color: #333;
+      color: #fff;
+      padding: 10px;
+      text-align: center;
+    }
+
+    h1 {
+      margin: 0;
+    }
+
+    nav {
+      background-color: #eee;
+      padding: 10px;
+    }
+
+    ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    li {
+      display: inline-block;
+      margin-right: 10px;
+    }
+
+    li:last-child {
+      margin-right: 0;
+    }
+
+    a {
+      color: #333;
+      text-decoration: none;
+    }
+
+    a:hover {
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>My Online Store</h1>
+  </header>
+  <nav>
+    <ul>
+      <li><a href="/">Home</a></li>
+      <li><a href="/products">Products</a></li>
+      <li><a href="/categories">Categories</a></li>
+    </ul>
+  </nav>
+  <main>
+    <h2>Featured Products</h2>
+    <ul class="product-list">
+      <% products.forEach((product) => { %>
+        <li class="product-list-item">
+          <a href="/products/<%= product._id %>">
+            <img src="<%= product.imageUrl %>" alt="<%= product.name %>">
+            <h3><%= product.name %></h3>
+            <p><%= product.price %> USD</p>
+          </a>
+        </li>
+      <% }); %>
+    </ul>
+  </main>
+</body>
+</html>
