@@ -36,5 +36,21 @@ userSchema.methods.checkPassword = async function(password) {
   return await bcrypt.compare(password, user.password);
 };
 
+// функция поиска пользователя по email и паролю
+userSchema.statics.findByCredentials = async (email, password) => {
+  const user = await User.findOne({ email });
+  if (!user) {
+    throw new Error('Unable to login');
+  }
+
+  const isMatch = await bcrypt.compare(password, user.password);
+
+  if (!isMatch) {
+    throw new Error('Incorrect password');
+  }
+
+  return user;
+};
+
 const User = mongoose.model('User', userSchema);
 module.exports = User;

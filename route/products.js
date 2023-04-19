@@ -1,13 +1,14 @@
 const express = require('express');
 const multer = require('multer');
-const Product = require('../models/product');
-const auth = require('../middleware/auth');
+const Product = require('../model/product');
 const router = express.Router();
+const Category = require('../model/category');
+const jwt = require('jsonwebtoken');
 
 // Set up multer for file upload
 const upload = multer({
   limits: {
-    fileSize: 1000000 // 1MB
+    fileSize: 10 * 1024 * 1024 // 10 MB
   },
   fileFilter(req, file, cb) {
     if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
@@ -18,7 +19,12 @@ const upload = multer({
 });
 
 // Create a new product
-router.post('/products', upload.single('photo'), async (req, res) => {
+router.post('/', upload.single('photo'), async (req, res) => {
+const token = req.cookies.authToken;
+  if (token) {
+    // добавляем токен в заголовок Authorization для всех запросов
+    req.headers.authorization = 'Bearer ' + token;
+  }
 checkAuth(req, res);
   const product = new Product({
     ...req.body,
@@ -33,18 +39,29 @@ checkAuth(req, res);
 });
 
 // Get all products
-router.get('/products', async (req, res) => {
+router.get('/', async (req, res) => {
+const token = req.cookies.authToken;
+  if (token) {
+    // добавляем токен в заголовок Authorization для всех запросов
+    req.headers.authorization = 'Bearer ' + token;
+  }
 checkAuth(req, res);
   try {
+    const categories = await Category.find();
     const products = await Product.find();
-    res.send(products);
+    res.render('product', {products,categories});
   } catch (error) {
     res.status(500).send(error);
   }
 });
 
 // Get a product by ID
-router.get('/products/:id', async (req, res) => {
+router.get('/:id', async (req, res) => {
+const token = req.cookies.authToken;
+  if (token) {
+    // добавляем токен в заголовок Authorization для всех запросов
+    req.headers.authorization = 'Bearer ' + token;
+  }
 checkAuth(req, res);
   const _id = req.params.id;
   try {
@@ -59,7 +76,12 @@ checkAuth(req, res);
 });
 
 // Update a product by ID
-router.patch('/products/:id', upload.single('photo'), async (req, res) => {
+router.patch('/:id', upload.single('photo'), async (req, res) => {
+const token = req.cookies.authToken;
+  if (token) {
+    // добавляем токен в заголовок Authorization для всех запросов
+    req.headers.authorization = 'Bearer ' + token;
+  }
 checkAuth(req, res);
   const updates = Object.keys(req.body);
   const allowedUpdates = ['name', 'description', 'price', 'category'];
@@ -84,7 +106,12 @@ checkAuth(req, res);
 });
 
 // Delete a product by ID
-router.delete('/products/:id', async (req, res) => {
+router.delete('/:id', async (req, res) => {
+const token = req.cookies.authToken;
+  if (token) {
+    // добавляем токен в заголовок Authorization для всех запросов
+    req.headers.authorization = 'Bearer ' + token;
+  }
 checkAuth(req, res);
   try {
     const product = await Product.findByIdAndDelete(req.params.id);
@@ -108,9 +135,13 @@ function checkAuth(req, res) {
     return res.status(401).render('auth');
   }
   try {
-    const decoded = jwt.verify(token, secretKey);
+
+    const tokenTemp = token.replace('Bearer ', '')
+
+    const decoded = jwt.verify(tokenTemp, secretKey);
     req.user = decoded;
   } catch (err) {
+    console.log(err)
     return res.status(401).render('auth');
   }
 }

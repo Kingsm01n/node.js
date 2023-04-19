@@ -27,6 +27,18 @@ const orderSchema = new mongoose.Schema({
   }
 });
 
-const Order = mongoose.model('Order', orderSchema);
+orderSchema.virtual('total').get(function() {
+  let sum = 0;
+  for (let i = 0; i < this.products.length; i++) {
+    sum += this.products[i].product.price * this.products[i].quantity;
+  }
+  return sum;
+});
 
+orderSchema.statics.findByUserId = async (userId) => {
+  const orders = await Order.find({ user: userId }).exec();
+  return orders;
+}
+
+const Order = mongoose.model('Order', orderSchema);
 module.exports = Order;

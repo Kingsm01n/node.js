@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Products</title>
+  <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+      }
+
+      header {
+        background-color: #333;
+        color: #fff;
+        padding: 10px;
+        text-align: center;
+      }
+
+      h1 {
+        margin: 0;
+      }
+
+      nav {
+        background-color: #eee;
+        padding: 10px;
+      }
+
+      ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+
+      li {
+        display: inline-block;
+        margin-right: 10px;
+      }
+
+      li:last-child {
+        margin-right: 0;
+      }
+
+      a {
+        color: #333;
+        text-decoration: none;
+      }
+
+      a:hover {
+        color: #666;
+      }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>My Online Store</h1>
+  </header>
+  <nav>
+    <ul>
+      <li><a href="/">Home</a></li>
+      <li><a href="/products">Products</a></li>
+      <li><a href="/categories">Categories</a></li>
+          <li><a href="/orders">Orders</a></li>
+    </ul>
+  </nav>
+  <h1>Products</h1>
+  <ul>
+    <% products.forEach(function(product) { %>
+      <li><%= product.name %></li>
+      <li><%= product.description %></li>
+      <li><%= product.price %></li>
+      <li><img src="<%= product.photo %>"></li>
+      <li><%= product.category.name %></li>
+      <form method="POST" action="/orders">
+        <input type="hidden" name="product" value="<%= product._id %>">
+        <button type="submit">Купить</button>
+      </form>
+    <% }); %>
+  </ul>
+  <form action="/products" method="POST" enctype="multipart/form-data">
+    <label for="name">Name</label>
+    <input type="text" id="name" name="name" required>
+
+    <label for="description">Description</label>
+    <textarea id="description" name="description" required></textarea>
+
+    <label for="price">Price</label>
+    <input type="number" id="price" name="price" required>
+
+    <label for="photo">Photo</label>
+    <input type="file" id="photo" name="photo" required>
+
+    <label for="category">Category</label>
+    <select id="category" name="category" required>
+      <% categories.forEach(function(category) { %>
+        <option value="<%= category._id %>"><%= category.name %></option>
+      <% }); %>
+    </select>
+
+    <button type="submit">Create</button>
+  </form>
+</body>
+</html>

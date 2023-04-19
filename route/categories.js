@@ -1,34 +1,50 @@
 const express = require('express');
 const router = express.Router();
 const Category = require('../model/category');
+const jwt = require('jsonwebtoken');
 
 // Create a new category
-router.post('/categories', async (req, res) => {
+router.post('/', async (req, res) => {
+const token = req.cookies.authToken;
+  if (token) {
+    // добавляем токен в заголовок Authorization для всех запросов
+    req.headers.authorization = 'Bearer ' + token;
+  }
   checkAuth(req, res);
   const category = new Category(req.body);
   try {
     await category.save();
 
-    const categories = Category.find();
-    res.status(201).render("categories", {categories, category});
+    const categories = await Category.find();
+    res.status(201).render("category", {categories, category});
   } catch (error) {
     res.status(400).send(error);
   }
 });
 
 // Get all categories
-router.get('/categories', async (req, res) => {
+router.get('/', async (req, res) => {
+const token = req.cookies.authToken;
+  if (token) {
+    // добавляем токен в заголовок Authorization для всех запросов
+    req.headers.authorization = 'Bearer ' + token;
+  }
   checkAuth(req, res);
   try {
     const categories = await Category.find({});
-    res.send(categories);
+    res.status(200).render("category", {categories});
   } catch (error) {
     res.status(500).send(error);
   }
 });
 
 // Get a specific category by ID
-router.get('/categories/:id', async (req, res) => {
+router.get('/:id', async (req, res) => {
+const token = req.cookies.authToken;
+  if (token) {
+    // добавляем токен в заголовок Authorization для всех запросов
+    req.headers.authorization = 'Bearer ' + token;
+  }
   checkAuth(req, res);
   const _id = req.params.id;
   try {
@@ -43,7 +59,12 @@ router.get('/categories/:id', async (req, res) => {
 });
 
 // Update a specific category by ID
-router.patch('/categories/:id', async (req, res) => {
+router.patch('/:id', async (req, res) => {
+const token = req.cookies.authToken;
+  if (token) {
+    // добавляем токен в заголовок Authorization для всех запросов
+    req.headers.authorization = 'Bearer ' + token;
+  }
   checkAuth(req, res);
   const updates = Object.keys(req.body);
   const allowedUpdates = ['name'];
@@ -66,7 +87,12 @@ router.patch('/categories/:id', async (req, res) => {
 });
 
 // Delete a specific category by ID
-router.delete('/categories/:id', async (req, res) => {
+router.delete('/:id', async (req, res) => {
+const token = req.cookies.authToken;
+  if (token) {
+    // добавляем токен в заголовок Authorization для всех запросов
+    req.headers.authorization = 'Bearer ' + token;
+  }
   checkAuth(req, res);
   const _id = req.params.id;
   try {
@@ -91,9 +117,13 @@ function checkAuth(req, res) {
     return res.status(401).render('auth');
   }
   try {
-    const decoded = jwt.verify(token, secretKey);
+
+    const tokenTemp = token.replace('Bearer ', '')
+
+    const decoded = jwt.verify(tokenTemp, secretKey);
     req.user = decoded;
   } catch (err) {
+    console.log(err)
     return res.status(401).render('auth');
   }
 }
