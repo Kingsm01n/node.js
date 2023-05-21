@@ -3,3 +3,6 @@
 **/.idea/**
 *.iml
 out/
+
+#Node
+**/node_modules/**
